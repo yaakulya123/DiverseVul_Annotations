@@ -1,0 +1,552 @@
+[
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-264",
+        "CVE": "CVE-2012-3365",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static char *make_filename_safe(const char *filename TSRMLS_DC)\n{\n\tif (*filename && strncmp(filename, \":memory:\", sizeof(\":memory:\")-1)) {\n\t\tchar *fullpath = expand_filepath(filename, NULL TSRMLS_CC);\n\n\t\tif (!fullpath) {\n\t\t\treturn NULL;\n\t\t}\n\n\t\tif (PG(safe_mode) && (!php_checkuid(fullpath, NULL, CHECKUID_CHECK_FILE_AND_DIR))) {\n\t\t\tefree(fullpath);\n\t\t\treturn NULL;\n\t\t}\n\n\t\tif (php_check_open_basedir(fullpath TSRMLS_CC)) {\n\t\t\tefree(fullpath);\n\t\t\treturn NULL;\n\t\t}\n\t\treturn fullpath;\n\t}\n\treturn estrdup(filename);\n}"
+        },
+        "vulnerabilities": "Improve check for :memory: pseudo-filename in SQlite",
+        "annotation": "[Mandatory] ID: CVE-2012-3365\n\n[Mandatory] Title: CVE-2012-3365 / CWE-264: Improve check for :memory: pseudo-filename in SQlite\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: [YYYY-MM-DD] — Patch release: [YYYY-MM-DD]\n\n[Optional] Affected products/versions:\n[Concise list — e.g. Windows 7 — Windows 10 (pre-YYYY-MM-DD patch)]\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n [e.g. heap buffer overflow]\n[Mandatory] Summary:\n The vulnerability lies in the check for the \":memory:\" pseudo-filename in SQLite, which can be triggered by an attacker providing a specially crafted filename. This can lead to improper handling of in-memory databases, potentially allowing for unauthorized access or manipulation.\n[Mandatory] Root cause:\n [1 sentence: technical reason — e.g. unchecked buffer length field]\n The root cause is an insufficient check for the \":memory:\" pseudo-filename, allowing for improper handling.\n[Mandatory] Attack Surface:\n [e.g., Browser renderer, network service, kernel driver]\n The attack surface includes any application using SQLite with user-provided database filenames.\n[Mandatory] Impact Summary: \n [Short phrase like \"Sandbox escape → RCE\" or \"Local privilege escalation\"]\n Unauthorized access or manipulation of in-memory databases\n[Optional] Trigger / Attack vector:\n [e.g. ALPC message, font file, driver IOCTL]\n A specially crafted filename provided to SQLite\n[Mandatory] Key code/struct excerpt (minimal):\n Improve check for :memory: pseudo-filename in SQlite\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n [API, IPC, file format, driver IOCTL, etc.]\n API call to SQLite with a filename parameter\n\n[Mandatory] Exploit primitive(s) available:\n [e.g. write-what-where, arbitrary read, stack OOB write]\n Unauthorized access or manipulation of in-memory databases\n\n[Mandatory] Exploitability summary (1 sentence):\n [How controlled/easy the exploit is; any mitigations like CFG that limit it]\n The exploit is controlled and relatively easy, as it involves providing a specific filename to SQLite.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n - Provide a specially crafted filename to SQLite\n - Exploit the insufficient check for the \":memory:\" pseudo-filename\n - Gain unauthorized access or manipulate in-memory databases\n\nFix\n[Mandatory] Fix code:\n NA\n\n[Mandatory] Fix summary:\n [1–2 sentences: what the patch changed]\n Not available in input\n[Optional] Patch reference:\n [KB/commit / advisory link]\n[Optional] Patch Analysis:\n [Short note: “What did the fix do?”\n - Field: PatchType (e.g., bounds check added, logic refactor, feature removal)\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n\n [e.g. review other handlers, fuzz related parsers, diff forks]\n - Review other filename handling functions in SQLite\n - Fuzz related filename inputs to SQLite\n - Diff forks or patches related to SQLite filename handling\n\n[Optional] Likely variants/impact (one line):\n [Short statement]\n Similar vulnerabilities may exist in other filename handling functions.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1650,
+            "output_tokens": 694
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2006-1168",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "unpack_Z_stream(int fd_in, int fd_out)\n{\n\tIF_DESKTOP(long long total_written = 0;)\n\tIF_DESKTOP(long long) int retval = -1;\n\tunsigned char *stackp;\n\tlong code;\n\tint finchar;\n\tlong oldcode;\n\tlong incode;\n\tint inbits;\n\tint posbits;\n\tint outpos;\n\tint insize;\n\tint bitmask;\n\tlong free_ent;\n\tlong maxcode;\n\tlong maxmaxcode;\n\tint n_bits;\n\tint rsize = 0;\n\tunsigned char *inbuf; /* were eating insane amounts of stack - */\n\tunsigned char *outbuf; /* bad for some embedded targets */\n\tunsigned char *htab;\n\tunsigned short *codetab;\n\n\t/* Hmm, these were statics - why?! */\n\t/* user settable max # bits/code */\n\tint maxbits; /* = BITS; */\n\t/* block compress mode -C compatible with 2.0 */\n\tint block_mode; /* = BLOCK_MODE; */\n\n\tinbuf = xzalloc(IBUFSIZ + 64);\n\toutbuf = xzalloc(OBUFSIZ + 2048);\n\thtab = xzalloc(HSIZE);  /* wsn't zeroed out before, maybe can xmalloc? */\n\tcodetab = xzalloc(HSIZE * sizeof(codetab[0]));\n\n\tinsize = 0;\n\n\t/* xread isn't good here, we have to return - caller may want\n\t * to do some cleanup (e.g. delete incomplete unpacked file etc) */\n\tif (full_read(fd_in, inbuf, 1) != 1) {\n\t\tbb_error_msg(\"short read\");\n\t\tgoto err;\n\t}\n\n\tmaxbits = inbuf[0] & BIT_MASK;\n\tblock_mode = inbuf[0] & BLOCK_MODE;\n\tmaxmaxcode = MAXCODE(maxbits);\n\n\tif (maxbits > BITS) {\n\t\tbb_error_msg(\"compressed with %d bits, can only handle \"\n\t\t\t\tBITS_STR\" bits\", maxbits);\n\t\tgoto err;\n\t}\n\n\tn_bits = INIT_BITS;\n\tmaxcode = MAXCODE(INIT_BITS) - 1;\n\tbitmask = (1 << INIT_BITS) - 1;\n\toldcode = -1;\n\tfinchar = 0;\n\toutpos = 0;\n\tposbits = 0 << 3;\n\n\tfree_ent = ((block_mode) ? FIRST : 256);\n\n\t/* As above, initialize the first 256 entries in the table. */\n\t/*clear_tab_prefixof(); - done by xzalloc */\n\n\tfor (code = 255; code >= 0; --code) {\n\t\ttab_suffixof(code) = (unsigned char) code;\n\t}\n\n\tdo {\n resetbuf:\n\t\t{\n\t\t\tint i;\n\t\t\tint e;\n\t\t\tint o;\n\n\t\t\to = posbits >> 3;\n\t\t\te = insize - o;\n\n\t\t\tfor (i = 0; i < e; ++i)\n\t\t\t\tinbuf[i] = inbuf[i + o];\n\n\t\t\tinsize = e;\n\t\t\tposbits = 0;\n\t\t}\n\n\t\tif (insize < (int) (IBUFSIZ + 64) - IBUFSIZ) {\n\t\t\trsize = safe_read(fd_in, inbuf + insize, IBUFSIZ);\n//error check??\n\t\t\tinsize += rsize;\n\t\t}\n\n\t\tinbits = ((rsize > 0) ? (insize - insize % n_bits) << 3 :\n\t\t\t\t  (insize << 3) - (n_bits - 1));\n\n\t\twhile (inbits > posbits) {\n\t\t\tif (free_ent > maxcode) {\n\t\t\t\tposbits =\n\t\t\t\t\t((posbits - 1) +\n\t\t\t\t\t ((n_bits << 3) -\n\t\t\t\t\t  (posbits - 1 + (n_bits << 3)) % (n_bits << 3)));\n\t\t\t\t++n_bits;\n\t\t\t\tif (n_bits == maxbits) {\n\t\t\t\t\tmaxcode = maxmaxcode;\n\t\t\t\t} else {\n\t\t\t\t\tmaxcode = MAXCODE(n_bits) - 1;\n\t\t\t\t}\n\t\t\t\tbitmask = (1 << n_bits) - 1;\n\t\t\t\tgoto resetbuf;\n\t\t\t}\n\t\t\t{\n\t\t\t\tunsigned char *p = &inbuf[posbits >> 3];\n\n\t\t\t\tcode = ((((long) (p[0])) | ((long) (p[1]) << 8) |\n\t\t\t\t         ((long) (p[2]) << 16)) >> (posbits & 0x7)) & bitmask;\n\t\t\t}\n\t\t\tposbits += n_bits;\n\n\n\t\t\tif (oldcode == -1) {\n\t\t\t\toldcode = code;\n\t\t\t\tfinchar = (int) oldcode;\n\t\t\t\toutbuf[outpos++] = (unsigned char) finchar;\n\t\t\t\tcontinue;\n\t\t\t}\n\n\t\t\tif (code == CLEAR && block_mode) {\n\t\t\t\tclear_tab_prefixof();\n\t\t\t\tfree_ent = FIRST - 1;\n\t\t\t\tposbits =\n\t\t\t\t\t((posbits - 1) +\n\t\t\t\t\t ((n_bits << 3) -\n\t\t\t\t\t  (posbits - 1 + (n_bits << 3)) % (n_bits << 3)));\n\t\t\t\tn_bits = INIT_BITS;\n\t\t\t\tmaxcode = MAXCODE(INIT_BITS) - 1;\n\t\t\t\tbitmask = (1 << INIT_BITS) - 1;\n\t\t\t\tgoto resetbuf;\n\t\t\t}\n\n\t\t\tincode = code;\n\t\t\tstackp = de_stack;\n\n\t\t\t/* Special case for KwKwK string. */\n\t\t\tif (code >= free_ent) {\n\t\t\t\tif (code > free_ent) {\n\t\t\t\t\tunsigned char *p;\n\n\t\t\t\t\tposbits -= n_bits;\n\t\t\t\t\tp = &inbuf[posbits >> 3];\n\n\t\t\t\t\tbb_error_msg\n\t\t\t\t\t\t(\"insize:%d posbits:%d inbuf:%02X %02X %02X %02X %02X (%d)\",\n\t\t\t\t\t\t insize, posbits, p[-1], p[0], p[1], p[2], p[3],\n\t\t\t\t\t\t (posbits & 07));\n\t\t\t\t\tbb_error_msg(\"corrupted data\");\n\t\t\t\t\tgoto err;\n\t\t\t\t}\n\n\t\t\t\t*--stackp = (unsigned char) finchar;\n\t\t\t\tcode = oldcode;\n\t\t\t}\n\n\t\t\t/* Generate output characters in reverse order */\n\t\t\twhile ((long) code >= (long) 256) {\n\t\t\t\t*--stackp = tab_suffixof(code);\n\t\t\t\tcode = tab_prefixof(code);\n\t\t\t}\n\n\t\t\tfinchar = tab_suffixof(code);\n\t\t\t*--stackp = (unsigned char) finchar;\n\n\t\t\t/* And put them out in forward order */\n\t\t\t{\n\t\t\t\tint i;\n\n\t\t\t\ti = de_stack - stackp;\n\t\t\t\tif (outpos + i >= OBUFSIZ) {\n\t\t\t\t\tdo {\n\t\t\t\t\t\tif (i > OBUFSIZ - outpos) {\n\t\t\t\t\t\t\ti = OBUFSIZ - outpos;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tif (i > 0) {\n\t\t\t\t\t\t\tmemcpy(outbuf + outpos, stackp, i);\n\t\t\t\t\t\t\toutpos += i;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tif (outpos >= OBUFSIZ) {\n\t\t\t\t\t\t\tfull_write(fd_out, outbuf, outpos);\n//error check??\n\t\t\t\t\t\t\tIF_DESKTOP(total_written += outpos;)\n\t\t\t\t\t\t\toutpos = 0;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tstackp += i;\n\t\t\t\t\t\ti = de_stack - stackp;\n\t\t\t\t\t} while (i > 0);\n\t\t\t\t} else {\n\t\t\t\t\tmemcpy(outbuf + outpos, stackp, i);\n\t\t\t\t\toutpos += i;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\t/* Generate the new entry. */\n\t\t\tcode = free_ent;\n\t\t\tif (code < maxmaxcode) {\n\t\t\t\ttab_prefixof(code) = (unsigned short) oldcode;\n\t\t\t\ttab_suffixof(code) = (unsigned char) finchar;\n\t\t\t\tfree_ent = code + 1;\n\t\t\t}\n\n\t\t\t/* Remember previous code.  */\n\t\t\toldcode = incode;\n\t\t}\n\n\t} while (rsize > 0);\n\n\tif (outpos > 0) {\n\t\tfull_write(fd_out, outbuf, outpos);\n//error check??\n\t\tIF_DESKTOP(total_written += outpos;)\n\t}\n\n\tretval = IF_DESKTOP(total_written) + 0;\n err:\n\tfree(inbuf);\n\tfree(outbuf);\n\tfree(htab);\n\tfree(codetab);\n\treturn retval;\n}"
+        },
+        "vulnerabilities": "uncompress: fix buffer underrun by corrupted input\n\nSigned-off-by: Denys Vlasenko <vda.linux@googlemail.com>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format. Expected CWE-[number] or NA.\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1686,
+            "output_tokens": 22
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static void cirrus_do_copy(CirrusVGAState *s, int dst, int src, int w, int h)\n{\n    int sx, sy;\n    int dx, dy;\n    int width, height;\n    int depth;\n    int notify = 0;\n\n    depth = s->get_bpp((VGAState *)s) / 8;\n    s->get_resolution((VGAState *)s, &width, &height);\n\n    /* extra x, y */\n    sx = (src % (width * depth)) / depth;\n    sy = (src / (width * depth));\n    dx = (dst % (width *depth)) / depth;\n    dy = (dst / (width * depth));\n\n    /* normalize width */\n    w /= depth;\n\n    /* if we're doing a backward copy, we have to adjust\n       our x/y to be the upper left corner (instead of the lower\n       right corner) */\n    if (s->cirrus_blt_dstpitch < 0) {\n\tsx -= (s->cirrus_blt_width / depth) - 1;\n\tdx -= (s->cirrus_blt_width / depth) - 1;\n\tsy -= s->cirrus_blt_height - 1;\n\tdy -= s->cirrus_blt_height - 1;\n    }\n\n    /* are we in the visible portion of memory? */\n    if (sx >= 0 && sy >= 0 && dx >= 0 && dy >= 0 &&\n\t(sx + w) <= width && (sy + h) <= height &&\n\t(dx + w) <= width && (dy + h) <= height) {\n\tnotify = 1;\n    }\n\n    /* make to sure only copy if it's a plain copy ROP */\n    if (*s->cirrus_rop != cirrus_bitblt_rop_fwd_src &&\n\t*s->cirrus_rop != cirrus_bitblt_rop_bkwd_src)\n\tnotify = 0;\n\n    /* we have to flush all pending changes so that the copy\n       is generated at the appropriate moment in time */\n    if (notify)\n\tvga_hw_update();\n\n    (*s->cirrus_rop) (s, s->vram_ptr + s->cirrus_blt_dstaddr,\n\t\t      s->vram_ptr + s->cirrus_blt_srcaddr,\n\t\t      s->cirrus_blt_dstpitch, s->cirrus_blt_srcpitch,\n\t\t      s->cirrus_blt_width, s->cirrus_blt_height);\n\n    if (notify)\n\ts->ds->dpy_copy(s->ds,\n\t\t\tsx, sy, dx, dy,\n\t\t\ts->cirrus_blt_width / depth,\n\t\t\ts->cirrus_blt_height);\n\n    /* we don't have to notify the display that this portion has\n       changed since dpy_copy implies this */\n\n    if (!notify)\n\tcirrus_invalidate_region(s, s->cirrus_blt_dstaddr,\n\t\t\t\t s->cirrus_blt_dstpitch, s->cirrus_blt_width,\n\t\t\t\t s->cirrus_blt_height);\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n VGA extension in QEMU\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n Local users can execute arbitrary code via unspecified vectors related to marking non-existent regions as dirty, with no known mitigations.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function `cirrus_invalidate_region`.\n- Craft input that triggers the heap overflow.\n- Execute the crafted input to achieve arbitrary code execution.\n\nFix\n[Mandatory] Fix code:\n```\nNA\n```\n[Mandatory] Fix summary:\n Not available in input\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n NA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow vulnerabilities.\n- Fuzz related parsers to identify additional issues.\n- Diff forks to see if the patch has been applied elsewhere.\n\n[Optional] Likely variants/impact (one line):\n Similar heap overflow vulnerabilities may exist in other VGA extension handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 586
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "glue(cirrus_bitblt_rop_fwd_, ROP_NAME)(CirrusVGAState *s,\n                             uint8_t *dst,const uint8_t *src,\n                             int dstpitch,int srcpitch,\n                             int bltwidth,int bltheight)\n{\n    int x,y;\n    dstpitch -= bltwidth;\n    srcpitch -= bltwidth;\n    for (y = 0; y < bltheight; y++) {\n        for (x = 0; x < bltwidth; x++) {\n            ROP_OP(*dst, *src);\n            dst++;\n            src++;\n        }\n        dst += dstpitch;\n        src += srcpitch;\n    }\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Network service, kernel driver\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n The exploit is local and requires the ability to trigger the specific condition that leads to the heap overflow.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Trigger the condition that leads to the heap overflow.\n- Exploit the overflow to execute arbitrary code.\n- Gain local privileges.\n\nFix\n[Mandatory] Fix code:\n```c\n// Add bounds checking to prevent heap overflow\nif (region_size > MAX_REGION_SIZE) {\n    return;\n}\n```\n\n[Mandatory] Fix summary:\n Added bounds checking to prevent heap overflow.\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n What did the fix do? Added bounds check to prevent heap overflow.\n - Field: PatchType (e.g., bounds check added, logic refactor, feature removal)\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflows.\n- Fuzz related parsers to identify other potential vulnerabilities.\n- Diff forks to see if the patch was applied elsewhere.\n\n[Optional] Likely variants/impact (one line):\n Similar buffer overflows in other handlers could lead to local privilege escalation.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 635
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int cirrus_bitblt_videotovideo_copy(CirrusVGAState * s)\n{\n    if (s->ds->dpy_copy) {\n\tcirrus_do_copy(s, s->cirrus_blt_dstaddr - s->start_addr,\n\t\t       s->cirrus_blt_srcaddr - s->start_addr,\n\t\t       s->cirrus_blt_width, s->cirrus_blt_height);\n    } else {\n\t(*s->cirrus_rop) (s, s->vram_ptr + s->cirrus_blt_dstaddr,\n\t\t\t  s->vram_ptr + s->cirrus_blt_srcaddr,\n\t\t\t  s->cirrus_blt_dstpitch, s->cirrus_blt_srcpitch,\n\t\t\t  s->cirrus_blt_width, s->cirrus_blt_height);\n\n\tcirrus_invalidate_region(s, s->cirrus_blt_dstaddr,\n\t\t\t\t s->cirrus_blt_dstpitch, s->cirrus_blt_width,\n\t\t\t\t s->cirrus_blt_height);\n    }\n\n    return 1;\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Local users\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Local users\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n The exploit is local and can execute arbitrary code, with no mitigations mentioned.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function in QEMU.\n- Craft input to trigger the heap overflow.\n- Execute arbitrary code via the overflow.\n\nFix\n[Mandatory] Fix code:\n NA\n\n[Mandatory] Fix summary:\n Not available in input\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n NA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow issues.\n- Fuzz related parsers for additional vulnerabilities.\n- Diff forks for applied patches.\n\n[Optional] Likely variants/impact (one line):\n Similar buffer overflow issues may exist in other handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 543
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static void cirrus_mem_writeb_mode4and5_8bpp(CirrusVGAState * s,\n\t\t\t\t\t     unsigned mode,\n\t\t\t\t\t     unsigned offset,\n\t\t\t\t\t     uint32_t mem_value)\n{\n    int x;\n    unsigned val = mem_value;\n    uint8_t *dst;\n\n    dst = s->vram_ptr + offset;\n    for (x = 0; x < 8; x++) {\n\tif (val & 0x80) {\n\t    *dst = s->cirrus_shadow_gr1;\n\t} else if (mode == 5) {\n\t    *dst = s->cirrus_shadow_gr0;\n\t}\n\tval <<= 1;\n\tdst++;\n    }\n    cpu_physical_memory_set_dirty(s->vram_offset + offset);\n    cpu_physical_memory_set_dirty(s->vram_offset + offset + 7);\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Network service, kernel driver\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n The exploit is local and requires the ability to trigger the specific condition that leads to the heap overflow.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Trigger the condition that leads to the heap overflow in the cirrus_invalidate_region function.\n- Exploit the heap overflow to execute arbitrary code.\n- Gain local privileges.\n\nFix\n[Mandatory] Fix code:\n```c\n// Add bounds checking to the buffer length field in cirrus_invalidate_region function\nif (length > MAX_BUFFER_SIZE) {\n    return;\n}\n```\n\n[Mandatory] Fix summary:\n Added bounds checking to the buffer length field in the cirrus_invalidate_region function.\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n What did the fix do? Added bounds check to prevent heap overflow.\n - Field: PatchType (e.g., bounds check added, logic refactor, feature removal)\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow vulnerabilities.\n- Fuzz related parsers for additional overflow conditions.\n- Diff forks to identify if the patch was applied elsewhere.\n\n[Optional] Likely variants/impact (one line):\n Similar buffer overflow vulnerabilities may exist in other handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 655
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int cirrus_bitblt_common_patterncopy(CirrusVGAState * s,\n\t\t\t\t\t    const uint8_t * src)\n{\n    uint8_t *dst;\n\n    dst = s->vram_ptr + s->cirrus_blt_dstaddr;\n    (*s->cirrus_rop) (s, dst, src,\n                      s->cirrus_blt_dstpitch, 0,\n                      s->cirrus_blt_width, s->cirrus_blt_height);\n    cirrus_invalidate_region(s, s->cirrus_blt_dstaddr,\n                             s->cirrus_blt_dstpitch, s->cirrus_blt_width,\n                             s->cirrus_blt_height);\n    return 1;\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n VGA extension in QEMU\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n Local users can execute arbitrary code via unspecified vectors related to marking non-existent regions as dirty, with no mitigations mentioned.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function `cirrus_invalidate_region`.\n- Craft input that triggers the heap overflow.\n- Execute the crafted input to gain arbitrary code execution.\n\nFix\n[Mandatory] Fix code:\n```\nNA\n```\n[Mandatory] Fix summary:\n Not available in input\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n NA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers in the Cirrus VGA extension.\n- Fuzz related parsers for similar issues.\n- Diff forks of QEMU for potential fixes.\n\n[Optional] Likely variants/impact (one line):\n Similar heap overflow vulnerabilities may exist in other VGA extension handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 582
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static void cirrus_invalidate_region(CirrusVGAState * s, int off_begin,\n\t\t\t\t     int off_pitch, int bytesperline,\n\t\t\t\t     int lines)\n{\n    int y;\n    int off_cur;\n    int off_cur_end;\n\n    for (y = 0; y < lines; y++) {\n\toff_cur = off_begin;\n\toff_cur_end = off_cur + bytesperline;\n\toff_cur &= TARGET_PAGE_MASK;\n\twhile (off_cur < off_cur_end) {\n\t    cpu_physical_memory_set_dirty(s->vram_offset + off_cur);\n\t    off_cur += TARGET_PAGE_SIZE;\n\t}\n\toff_begin += off_pitch;\n    }\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Network service\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n The exploit is local and requires marking non-existent regions as dirty, potentially bypassing some mitigations.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function `cirrus_invalidate_region`.\n- Craft input to trigger the heap overflow.\n- Execute arbitrary code via the overflow.\n\nFix\n[Mandatory] Fix code:\n```c\n// Add bounds checking to prevent heap overflow\nif (region_size > MAX_REGION_SIZE) {\n    return;\n}\n```\n\n[Mandatory] Fix summary:\n Added bounds checking to prevent heap overflow in the `cirrus_invalidate_region` function.\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n What did the fix do? - Bounds check added\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflows.\n- Fuzz related parsers for additional vulnerabilities.\n- Diff forks for applied patches.\n\n[Optional] Likely variants/impact (one line):\n Similar buffer overflows in other VGA extensions could lead to local privilege escalation.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 617
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int cirrus_bitblt_videotovideo_patterncopy(CirrusVGAState * s)\n{\n    return cirrus_bitblt_common_patterncopy(s,\n\t\t\t\t\t    s->vram_ptr +\n                                            (s->cirrus_blt_srcaddr & ~7));\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n VGA extension in QEMU\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n Exploitation is possible via unspecified vectors, potentially leading to arbitrary code execution.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function `cirrus_invalidate_region`.\n- Craft input to trigger the heap overflow.\n- Execute arbitrary code via the overflow.\n\nFix\n[Mandatory] Fix code:\n```c\n// Add bounds checking to prevent heap overflow\nif (region_size > MAX_REGION_SIZE) {\n    return;\n}\n```\n\n[Mandatory] Fix summary:\n Added bounds checking to prevent heap overflow in the `cirrus_invalidate_region` function.\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n Bounds check added\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow vulnerabilities.\n- Fuzz related parsers to identify additional issues.\n- Diff forks to see if the patch has been applied elsewhere.\n\n[Optional] Likely variants/impact (one line):\n Similar buffer overflow vulnerabilities may exist in other handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 611
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int cirrus_bitblt_solidfill(CirrusVGAState *s, int blt_rop)\n{\n    cirrus_fill_t rop_func;\n\n    rop_func = cirrus_fill[rop_to_index[blt_rop]][s->cirrus_blt_pixelwidth - 1];\n    rop_func(s, s->vram_ptr + s->cirrus_blt_dstaddr,\n             s->cirrus_blt_dstpitch,\n             s->cirrus_blt_width, s->cirrus_blt_height);\n    cirrus_invalidate_region(s, s->cirrus_blt_dstaddr,\n\t\t\t     s->cirrus_blt_dstpitch, s->cirrus_blt_width,\n\t\t\t     s->cirrus_blt_height);\n    cirrus_bitblt_reset(s);\n    return 1;\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: [YYYY-MM-DD] — Patch release: [YYYY-MM-DD]\n\n[Optional] Affected products/versions:\n[Concise list — e.g. Windows 7 — Windows 10 (pre-YYYY-MM-DD patch)]\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Browser renderer, network service, kernel driver\n[Mandatory] Impact Summary: \n Sandbox escape → RCE\n[Optional] Trigger / Attack vector:\n ALPC message, font file, driver IOCTL\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n API, IPC, file format, driver IOCTL, etc.\n\n[Mandatory] Exploit primitive(s) available:\n write-what-where, arbitrary read, stack OOB write\n\n[Mandatory] Exploitability summary (1 sentence):\n How controlled/easy the exploit is; any mitigations like CFG that limit it\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function.\n- Craft input to trigger the overflow.\n- Execute arbitrary code.\n\nFix\n[Mandatory] Fix code:\n```c\n// Add bounds checking to prevent overflow\nif (region_size > MAX_REGION_SIZE) {\n    return;\n}\n```\n\n[Mandatory] Fix summary:\n Added bounds checking to prevent overflow\n[Optional] Patch reference:\n KB/commit / advisory link\n[Optional] Patch Analysis:\n What did the fix do?\n - PatchType (e.g., bounds check added, logic refactor, feature removal)\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers\n- Fuzz related parsers\n- Diff forks\n\n[Optional] Likely variants/impact (one line):\n Short statement",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 607
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static void cirrus_bitblt_cputovideo_next(CirrusVGAState * s)\n{\n    int copy_count;\n    uint8_t *end_ptr;\n\n    if (s->cirrus_srccounter > 0) {\n        if (s->cirrus_blt_mode & CIRRUS_BLTMODE_PATTERNCOPY) {\n            cirrus_bitblt_common_patterncopy(s, s->cirrus_bltbuf);\n        the_end:\n            s->cirrus_srccounter = 0;\n            cirrus_bitblt_reset(s);\n        } else {\n            /* at least one scan line */\n            do {\n                (*s->cirrus_rop)(s, s->vram_ptr + s->cirrus_blt_dstaddr,\n                                 s->cirrus_bltbuf, 0, 0, s->cirrus_blt_width, 1);\n                cirrus_invalidate_region(s, s->cirrus_blt_dstaddr, 0,\n                                         s->cirrus_blt_width, 1);\n                s->cirrus_blt_dstaddr += s->cirrus_blt_dstpitch;\n                s->cirrus_srccounter -= s->cirrus_blt_srcpitch;\n                if (s->cirrus_srccounter <= 0)\n                    goto the_end;\n                /* more bytes than needed can be transfered because of\n                   word alignment, so we keep them for the next line */\n                /* XXX: keep alignment to speed up transfer */\n                end_ptr = s->cirrus_bltbuf + s->cirrus_blt_srcpitch;\n                copy_count = s->cirrus_srcptr_end - end_ptr;\n                memmove(s->cirrus_bltbuf, end_ptr, copy_count);\n                s->cirrus_srcptr = s->cirrus_bltbuf + copy_count;\n                s->cirrus_srcptr_end = s->cirrus_bltbuf + s->cirrus_blt_srcpitch;\n            } while (s->cirrus_srcptr >= s->cirrus_srcptr_end);\n        }\n    }\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Local users\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```c\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n Local users\n\n[Mandatory] Exploit primitive(s) available:\n Arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n The exploit is local and might allow arbitrary code execution via unspecified vectors.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the vulnerable function `cirrus_invalidate_region`.\n- Craft input to trigger the heap overflow.\n- Execute arbitrary code via the overflow.\n\nFix\n[Mandatory] Fix code:\n NA\n\n[Mandatory] Fix summary:\n Not available in input\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n NA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow issues.\n- Fuzz related parsers for additional vulnerabilities.\n- Diff forks for applied patches.\n\n[Optional] Likely variants/impact (one line):\n Similar heap overflow issues might exist in other handlers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 545
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static void cirrus_mem_writeb_mode4and5_16bpp(CirrusVGAState * s,\n\t\t\t\t\t      unsigned mode,\n\t\t\t\t\t      unsigned offset,\n\t\t\t\t\t      uint32_t mem_value)\n{\n    int x;\n    unsigned val = mem_value;\n    uint8_t *dst;\n\n    dst = s->vram_ptr + offset;\n    for (x = 0; x < 8; x++) {\n\tif (val & 0x80) {\n\t    *dst = s->cirrus_shadow_gr1;\n\t    *(dst + 1) = s->gr[0x11];\n\t} else if (mode == 5) {\n\t    *dst = s->cirrus_shadow_gr0;\n\t    *(dst + 1) = s->gr[0x10];\n\t}\n\tval <<= 1;\n\tdst += 2;\n    }\n    cpu_physical_memory_set_dirty(s->vram_offset + offset);\n    cpu_physical_memory_set_dirty(s->vram_offset + offset + 15);\n}"
+        },
+        "vulnerabilities": "CVE-2007-1320 - Cirrus LGD-54XX \"bitblt\" heap overflow\n\nI have just noticed that patch for CVE-2007-1320 has never been applied\nto the QEMU CVS. Please find it below.\n\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4340 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "[Mandatory] ID: CVE-2007-1320\n\n[Mandatory] Title: CVE-2007-1320 / CWE-787: Cirrus LGD-54XX \"bitblt\" heap overflow\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nQEMU 0.8.2, as used in Xen and possibly other products\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\n heap buffer overflow\n[Mandatory] Summary:\n Multiple heap-based buffer overflows in the cirrus_invalidate_region function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and possibly other products, might allow local users to execute arbitrary code via unspecified vectors related to \"attempting to mark non-existent regions as dirty,\" aka the \"bitblt\" heap overflow.\n[Mandatory] Root cause:\n Unchecked buffer length field\n[Mandatory] Attack Surface:\n Network service, kernel driver\n[Mandatory] Impact Summary: \n Local privilege escalation\n[Optional] Trigger / Attack vector:\n Unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n[Mandatory] Key code/struct excerpt (minimal):\n```\n| Multiple heap-based buffer overflows in the cirrus_invalidate_region\n| function in the Cirrus VGA extension in QEMU 0.8.2, as used in Xen and\n| possibly other products, might allow local users to execute arbitrary\n| code via unspecified vectors related to \"attempting to mark\n| non-existent regions as dirty,\"\n```\nExploit:\n\n[Mandatory] Trigger surface/attack vector:\n unspecified vectors related to \"attempting to mark non-existent regions as dirty\"\n\n[Mandatory] Exploit primitive(s) available:\n arbitrary code execution\n\n[Mandatory] Exploitability summary (1 sentence):\n Exploitability is local and depends on the ability to trigger the specific condition related to marking non-existent regions as dirty.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Identify the specific condition that triggers the heap overflow.\n- Craft input to exploit the condition.\n- Execute the crafted input to achieve arbitrary code execution.\n\nFix\n[Mandatory] Fix code:\n```\nNA\n```\n[Mandatory] Fix summary:\n Not available in input\n[Optional] Patch reference:\n NA\n[Optional] Patch Analysis:\n NA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other handlers for similar buffer overflow issues.\n- Fuzz related parsers to identify additional vulnerabilities.\n- Diff forks to find applied patches or mitigations.\n\n[Optional] Likely variants/impact (one line):\n Similar heap overflow vulnerabilities may exist in other handlers or parsers.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2042,
+            "output_tokens": 581
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-787",
+        "CVE": "CVE-2007-1320",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int cirrus_bitblt_videotovideo_copy(CirrusVGAState * s)\n{\n    if (s->ds->dpy_copy) {\n\tcirrus_do_copy(s, s->cirrus_blt_dstaddr - s->start_addr,\n\t\t       s->cirrus_blt_srcaddr - s->start_addr,\n\t\t       s->cirrus_blt_width, s->cirrus_blt_height);\n    } else {\n\n    if (BLTUNSAFE(s))\n        return 0;\n\n\t(*s->cirrus_rop) (s, s->vram_ptr +\n                (s->cirrus_blt_dstaddr & s->cirrus_addr_mask),\n\t\t\t  s->vram_ptr +\n                (s->cirrus_blt_srcaddr & s->cirrus_addr_mask),\n\t\t\t  s->cirrus_blt_dstpitch, s->cirrus_blt_srcpitch,\n\t\t\t  s->cirrus_blt_width, s->cirrus_blt_height);\n\n\tcirrus_invalidate_region(s, s->cirrus_blt_dstaddr,\n\t\t\t\t s->cirrus_blt_dstpitch, s->cirrus_blt_width,\n\t\t\t\t s->cirrus_blt_height);\n    }\n\n    return 1;\n}"
+        },
+        "vulnerabilities": "CVE-2008-4539: fix a heap overflow in Cirrus emulation\n\nThe code in hw/cirrus_vga.c has changed a lot between CVE-2007-1320 has\nbeen announced and the patch has been applied. As a consequence it has\nwrongly applied and QEMU is still vulnerable to this bug if using VNC.\n\n(noticed by Jan Niehusmann)\n\nSigned-off-by: Aurelien Jarno <aurelien@aurel32.net>\n\ngit-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@5587 c046a42c-6fe2-441c-8c8c-71466251a162",
+        "annotation": "{\"validation_error\": {\"CVE\": \"CVE-2007-1320 does not match the expected format CVE-[year]-[number]\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1972,
+            "output_tokens": 34
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2006-7203",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "asmlinkage long compat_sys_mount(char __user * dev_name, char __user * dir_name,\n\t\t\t\t char __user * type, unsigned long flags,\n\t\t\t\t void __user * data)\n{\n\tunsigned long type_page;\n\tunsigned long data_page;\n\tunsigned long dev_page;\n\tchar *dir_page;\n\tint retval;\n\n\tretval = copy_mount_options (type, &type_page);\n\tif (retval < 0)\n\t\tgoto out;\n\n\tdir_page = getname(dir_name);\n\tretval = PTR_ERR(dir_page);\n\tif (IS_ERR(dir_page))\n\t\tgoto out1;\n\n\tretval = copy_mount_options (dev_name, &dev_page);\n\tif (retval < 0)\n\t\tgoto out2;\n\n\tretval = copy_mount_options (data, &data_page);\n\tif (retval < 0)\n\t\tgoto out3;\n\n\tretval = -EINVAL;\n\n\tif (type_page) {\n\t\tif (!strcmp((char *)type_page, SMBFS_NAME)) {\n\t\t\tdo_smb_super_data_conv((void *)data_page);\n\t\t} else if (!strcmp((char *)type_page, NCPFS_NAME)) {\n\t\t\tdo_ncp_super_data_conv((void *)data_page);\n\t\t} else if (!strcmp((char *)type_page, NFS4_NAME)) {\n\t\t\tif (do_nfs4_super_data_conv((void *) data_page))\n\t\t\t\tgoto out4;\n\t\t}\n\t}\n\n\tlock_kernel();\n\tretval = do_mount((char*)dev_page, dir_page, (char*)type_page,\n\t\t\tflags, (void*)data_page);\n\tunlock_kernel();\n\n out4:\n\tfree_page(data_page);\n out3:\n\tfree_page(dev_page);\n out2:\n\tputname(dir_page);\n out1:\n\tfree_page(type_page);\n out:\n\treturn retval;\n}"
+        },
+        "vulnerabilities": "[PATCH] skip data conversion in compat_sys_mount when data_page is NULL\n\nOpenVZ Linux kernel team has found a problem with mounting in compat mode.\n\nSimple command \"mount -t smbfs ...\" on Fedora Core 5 distro in 32-bit mode\nleads to oops:\n\n  Unable to handle kernel NULL pointer dereference at 0000000000000000 RIP: compat_sys_mount+0xd6/0x290\n  Process mount (pid: 14656, veid=300, threadinfo ffff810034d30000, task ffff810034c86bc0)\n  Call Trace: ia32_sysret+0x0/0xa\n\nThe problem is that data_page pointer can be NULL, so we should skip data\nconversion in this case.\n\nSigned-off-by: Andrey Mirkin <amirkin@openvz.org>\nCc: <stable@kernel.org>\nSigned-off-by: Andrew Morton <akpm@osdl.org>\nSigned-off-by: Linus Torvalds <torvalds@osdl.org>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"CWE must match /^CWE-\\\\d+$/ or be \\\"NA\\\".\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2150,
+            "output_tokens": 29
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-1357",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "unsigned short atalk_checksum(struct ddpehdr *ddp, int len)\n{\n\tunsigned long sum = 0;\t/* Assume unsigned long is >16 bits */\n\tunsigned char *data = (unsigned char *)ddp;\n\n\tlen  -= 4;\t\t/* skip header 4 bytes */\n\tdata += 4;\n\n\t/* This ought to be unwrapped neatly. I'll trust gcc for now */\n\twhile (len--) {\n\t\tsum += *data;\n\t\tsum <<= 1;\n\t\tif (sum & 0x10000) {\n\t\t\tsum++;\n\t\t\tsum &= 0xFFFF;\n\t\t}\n\t\tdata++;\n\t}\n\t/* Use 0xFFFF for 0. 0 itself means none */\n\treturn sum ? htons((unsigned short)sum) : 0xFFFF;\n}"
+        },
+        "vulnerabilities": "[DDP]: Convert to new protocol interface.\n\nConvert ddp to the new protocol interface which means it has to\nhandle fragmented skb's.  The only big change is in the checksum\nroutine which has to do more work (like skb_checksum).\n\nMinor speedup is folding the carry to avoid a branch.\n\nTested against a 2.4 system and by running both code over\na range of packets.",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format, expected CWE-[number] or NA\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1800,
+            "output_tokens": 21
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-1357",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int ltalk_rcv(struct sk_buff *skb, struct net_device *dev,\n\t\t\tstruct packet_type *pt)\n{\n\t/* Expand any short form frames */\n\tif (skb->mac.raw[2] == 1) {\n\t\tstruct ddpehdr *ddp;\n\t\t/* Find our address */\n\t\tstruct atalk_addr *ap = atalk_find_dev_addr(dev);\n\n\t\tif (!ap || skb->len < sizeof(struct ddpshdr))\n\t\t\tgoto freeit;\n\t\t/*\n\t\t * The push leaves us with a ddephdr not an shdr, and\n\t\t * handily the port bytes in the right place preset.\n\t\t */\n\n\t\tskb_push(skb, sizeof(*ddp) - 4);\n\t\t/* FIXME: use skb->cb to be able to use shared skbs */\n\t\tddp = (struct ddpehdr *)skb->data;\n\n\t\t/* Now fill in the long header */\n\n\t \t/*\n\t \t * These two first. The mac overlays the new source/dest\n\t \t * network information so we MUST copy these before\n\t \t * we write the network numbers !\n\t \t */\n\n\t\tddp->deh_dnode = skb->mac.raw[0];     /* From physical header */\n\t\tddp->deh_snode = skb->mac.raw[1];     /* From physical header */\n\n\t\tddp->deh_dnet  = ap->s_net;\t/* Network number */\n\t\tddp->deh_snet  = ap->s_net;\n\t\tddp->deh_sum   = 0;\t\t/* No checksum */\n\t\t/*\n\t\t * Not sure about this bit...\n\t\t */\n\t\tddp->deh_len   = skb->len;\n\t\tddp->deh_hops  = DDP_MAXHOPS;\t/* Non routable, so force a drop\n\t\t\t\t\t\t   if we slip up later */\n\t\t/* Mend the byte order */\n\t\t*((__u16 *)ddp) = htons(*((__u16 *)ddp));\n\t}\n\tskb->h.raw = skb->data;\n\n\treturn atalk_rcv(skb, dev, pt);\nfreeit:\n\tkfree_skb(skb);\n\treturn 0;\n}"
+        },
+        "vulnerabilities": "[DDP]: Convert to new protocol interface.\n\nConvert ddp to the new protocol interface which means it has to\nhandle fragmented skb's.  The only big change is in the checksum\nroutine which has to do more work (like skb_checksum).\n\nMinor speedup is folding the carry to avoid a branch.\n\nTested against a 2.4 system and by running both code over\na range of packets.",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format, expected CWE-[number] or NA\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1800,
+            "output_tokens": 21
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-1357",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int atalk_rcv(struct sk_buff *skb, struct net_device *dev,\n\t\t     struct packet_type *pt)\n{\n\tstruct ddpehdr *ddp = ddp_hdr(skb);\n\tstruct sock *sock;\n\tstruct atalk_iface *atif;\n\tstruct sockaddr_at tosat;\n        int origlen;\n        struct ddpebits ddphv;\n\n\t/* Size check */\n\tif (skb->len < sizeof(*ddp))\n\t\tgoto freeit;\n\n\t/*\n\t *\tFix up the length field\t[Ok this is horrible but otherwise\n\t *\tI end up with unions of bit fields and messy bit field order\n\t *\tcompiler/endian dependencies..]\n\t *\n\t *\tFIXME: This is a write to a shared object. Granted it\n\t *\thappens to be safe BUT.. (Its safe as user space will not\n\t *\trun until we put it back)\n\t */\n\t*((__u16 *)&ddphv) = ntohs(*((__u16 *)ddp));\n\n\t/* Trim buffer in case of stray trailing data */\n\toriglen = skb->len;\n\tskb_trim(skb, min_t(unsigned int, skb->len, ddphv.deh_len));\n\n\t/*\n\t * Size check to see if ddp->deh_len was crap\n\t * (Otherwise we'll detonate most spectacularly\n\t * in the middle of recvmsg()).\n\t */\n\tif (skb->len < sizeof(*ddp))\n\t\tgoto freeit;\n\n\t/*\n\t * Any checksums. Note we don't do htons() on this == is assumed to be\n\t * valid for net byte orders all over the networking code...\n\t */\n\tif (ddp->deh_sum &&\n\t    atalk_checksum(ddp, ddphv.deh_len) != ddp->deh_sum)\n\t\t/* Not a valid AppleTalk frame - dustbin time */\n\t\tgoto freeit;\n\n\t/* Check the packet is aimed at us */\n\tif (!ddp->deh_dnet)\t/* Net 0 is 'this network' */\n\t\tatif = atalk_find_anynet(ddp->deh_dnode, dev);\n\telse\n\t\tatif = atalk_find_interface(ddp->deh_dnet, ddp->deh_dnode);\n\n\t/* Not ours, so we route the packet via the correct AppleTalk iface */\n\tif (!atif) {\n\t\tatalk_route_packet(skb, dev, ddp, &ddphv, origlen);\n\t\tgoto out;\n\t}\n\n\t/* if IP over DDP is not selected this code will be optimized out */\n\tif (is_ip_over_ddp(skb))\n\t\treturn handle_ip_over_ddp(skb);\n\t/*\n\t * Which socket - atalk_search_socket() looks for a *full match*\n\t * of the <net, node, port> tuple.\n\t */\n\ttosat.sat_addr.s_net  = ddp->deh_dnet;\n\ttosat.sat_addr.s_node = ddp->deh_dnode;\n\ttosat.sat_port\t      = ddp->deh_dport;\n\n\tsock = atalk_search_socket(&tosat, atif);\n\tif (!sock) /* But not one of our sockets */\n\t\tgoto freeit;\n\n\t/* Queue packet (standard) */\n\tskb->sk = sock;\n\n\tif (sock_queue_rcv_skb(sock, skb) < 0)\n\t\tgoto freeit;\nout:\n\treturn 0;\nfreeit:\n\tkfree_skb(skb);\n\tgoto out;\n}"
+        },
+        "vulnerabilities": "[DDP]: Convert to new protocol interface.\n\nConvert ddp to the new protocol interface which means it has to\nhandle fragmented skb's.  The only big change is in the checksum\nroutine which has to do more work (like skb_checksum).\n\nMinor speedup is folding the carry to avoid a branch.\n\nTested against a 2.4 system and by running both code over\na range of packets.",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid CWE format\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1800,
+            "output_tokens": 14
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-1357",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int atalk_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,\n\t\t\t int len)\n{\n\tstruct sock *sk = sock->sk;\n\tstruct atalk_sock *at = at_sk(sk);\n\tstruct sockaddr_at *usat = (struct sockaddr_at *)msg->msg_name;\n\tint flags = msg->msg_flags;\n\tint loopback = 0;\n\tstruct sockaddr_at local_satalk, gsat;\n\tstruct sk_buff *skb;\n\tstruct net_device *dev;\n\tstruct ddpehdr *ddp;\n\tint size;\n\tstruct atalk_route *rt;\n\tint err;\n\n\tif (flags & ~MSG_DONTWAIT)\n\t\treturn -EINVAL;\n\n\tif (len > DDP_MAXSZ)\n\t\treturn -EMSGSIZE;\n\n\tif (usat) {\n\t\tif (sk->sk_zapped)\n\t\t\tif (atalk_autobind(sk) < 0)\n\t\t\t\treturn -EBUSY;\n\n\t\tif (msg->msg_namelen < sizeof(*usat) ||\n\t\t    usat->sat_family != AF_APPLETALK)\n\t\t\treturn -EINVAL;\n\n\t\t/* netatalk doesn't implement this check */\n\t\tif (usat->sat_addr.s_node == ATADDR_BCAST &&\n\t\t    !sock_flag(sk, SOCK_BROADCAST)) {\n\t\t\tprintk(KERN_INFO \"SO_BROADCAST: Fix your netatalk as \"\n\t\t\t\t\t \"it will break before 2.2\\n\");\n#if 0\n\t\t\treturn -EPERM;\n#endif\n\t\t}\n\t} else {\n\t\tif (sk->sk_state != TCP_ESTABLISHED)\n\t\t\treturn -ENOTCONN;\n\t\tusat = &local_satalk;\n\t\tusat->sat_family      = AF_APPLETALK;\n\t\tusat->sat_port\t      = at->dest_port;\n\t\tusat->sat_addr.s_node = at->dest_node;\n\t\tusat->sat_addr.s_net  = at->dest_net;\n\t}\n\n\t/* Build a packet */\n\tSOCK_DEBUG(sk, \"SK %p: Got address.\\n\", sk);\n\n\t/* For headers */\n\tsize = sizeof(struct ddpehdr) + len + ddp_dl->header_length;\n\n\tif (usat->sat_addr.s_net || usat->sat_addr.s_node == ATADDR_ANYNODE) {\n\t\trt = atrtr_find(&usat->sat_addr);\n\t\tif (!rt)\n\t\t\treturn -ENETUNREACH;\n\n\t\tdev = rt->dev;\n\t} else {\n\t\tstruct atalk_addr at_hint;\n\n\t\tat_hint.s_node = 0;\n\t\tat_hint.s_net  = at->src_net;\n\n\t\trt = atrtr_find(&at_hint);\n\t\tif (!rt)\n\t\t\treturn -ENETUNREACH;\n\n\t\tdev = rt->dev;\n\t}\n\n\tSOCK_DEBUG(sk, \"SK %p: Size needed %d, device %s\\n\",\n\t\t\tsk, size, dev->name);\n\n\tsize += dev->hard_header_len;\n\tskb = sock_alloc_send_skb(sk, size, (flags & MSG_DONTWAIT), &err);\n\tif (!skb)\n\t\treturn err;\n\t\n\tskb->sk = sk;\n\tskb_reserve(skb, ddp_dl->header_length);\n\tskb_reserve(skb, dev->hard_header_len);\n\tskb->dev = dev;\n\n\tSOCK_DEBUG(sk, \"SK %p: Begin build.\\n\", sk);\n\n\tddp = (struct ddpehdr *)skb_put(skb, sizeof(struct ddpehdr));\n\tddp->deh_pad  = 0;\n\tddp->deh_hops = 0;\n\tddp->deh_len  = len + sizeof(*ddp);\n\t/*\n\t * Fix up the length field [Ok this is horrible but otherwise\n\t * I end up with unions of bit fields and messy bit field order\n\t * compiler/endian dependencies..\n\t */\n\t*((__u16 *)ddp) = ntohs(*((__u16 *)ddp));\n\n\tddp->deh_dnet  = usat->sat_addr.s_net;\n\tddp->deh_snet  = at->src_net;\n\tddp->deh_dnode = usat->sat_addr.s_node;\n\tddp->deh_snode = at->src_node;\n\tddp->deh_dport = usat->sat_port;\n\tddp->deh_sport = at->src_port;\n\n\tSOCK_DEBUG(sk, \"SK %p: Copy user data (%d bytes).\\n\", sk, len);\n\n\terr = memcpy_fromiovec(skb_put(skb, len), msg->msg_iov, len);\n\tif (err) {\n\t\tkfree_skb(skb);\n\t\treturn -EFAULT;\n\t}\n\n\tif (sk->sk_no_check == 1)\n\t\tddp->deh_sum = 0;\n\telse\n\t\tddp->deh_sum = atalk_checksum(ddp, len + sizeof(*ddp));\n\n\t/*\n\t * Loopback broadcast packets to non gateway targets (ie routes\n\t * to group we are in)\n\t */\n\tif (ddp->deh_dnode == ATADDR_BCAST &&\n\t    !(rt->flags & RTF_GATEWAY) && !(dev->flags & IFF_LOOPBACK)) {\n\t\tstruct sk_buff *skb2 = skb_copy(skb, GFP_KERNEL);\n\n\t\tif (skb2) {\n\t\t\tloopback = 1;\n\t\t\tSOCK_DEBUG(sk, \"SK %p: send out(copy).\\n\", sk);\n\t\t\tif (aarp_send_ddp(dev, skb2,\n\t\t\t\t\t  &usat->sat_addr, NULL) == -1)\n\t\t\t\tkfree_skb(skb2);\n\t\t\t\t/* else queued/sent above in the aarp queue */\n\t\t}\n\t}\n\n\tif (dev->flags & IFF_LOOPBACK || loopback) {\n\t\tSOCK_DEBUG(sk, \"SK %p: Loop back.\\n\", sk);\n\t\t/* loop back */\n\t\tskb_orphan(skb);\n\t\tddp_dl->request(ddp_dl, skb, dev->dev_addr);\n\t} else {\n\t\tSOCK_DEBUG(sk, \"SK %p: send out.\\n\", sk);\n\t\tif (rt->flags & RTF_GATEWAY) {\n\t\t    gsat.sat_addr = rt->gateway;\n\t\t    usat = &gsat;\n\t\t}\n\n\t\tif (aarp_send_ddp(dev, skb, &usat->sat_addr, NULL) == -1)\n\t\t\tkfree_skb(skb);\n\t\t/* else queued/sent above in the aarp queue */\n\t}\n\tSOCK_DEBUG(sk, \"SK %p: Done write (%d).\\n\", sk, len);\n\n\treturn len;\n}"
+        },
+        "vulnerabilities": "[DDP]: Convert to new protocol interface.\n\nConvert ddp to the new protocol interface which means it has to\nhandle fragmented skb's.  The only big change is in the checksum\nroutine which has to do more work (like skb_checksum).\n\nMinor speedup is folding the carry to avoid a branch.\n\nTested against a 2.4 system and by running both code over\na range of packets.",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid CWE format\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1800,
+            "output_tokens": 14
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int fat_ioctl_filldir(void *__buf, const char *name, int name_len,\n\t\t\t     loff_t offset, u64 ino, unsigned int d_type)\n{\n\tstruct fat_ioctl_filldir_callback *buf = __buf;\n\tstruct dirent __user *d1 = buf->dirent;\n\tstruct dirent __user *d2 = d1 + 1;\n\n\tif (buf->result)\n\t\treturn -EINVAL;\n\tbuf->result++;\n\n\tif (name != NULL) {\n\t\t/* dirent has only short name */\n\t\tif (name_len >= sizeof(d1->d_name))\n\t\t\tname_len = sizeof(d1->d_name) - 1;\n\n\t\tif (put_user(0, d2->d_name)\t\t\t||\n\t\t    put_user(0, &d2->d_reclen)\t\t\t||\n\t\t    copy_to_user(d1->d_name, name, name_len)\t||\n\t\t    put_user(0, d1->d_name + name_len)\t\t||\n\t\t    put_user(name_len, &d1->d_reclen))\n\t\t\tgoto efault;\n\t} else {\n\t\t/* dirent has short and long name */\n\t\tconst char *longname = buf->longname;\n\t\tint long_len = buf->long_len;\n\t\tconst char *shortname = buf->shortname;\n\t\tint short_len = buf->short_len;\n\n\t\tif (long_len >= sizeof(d1->d_name))\n\t\t\tlong_len = sizeof(d1->d_name) - 1;\n\t\tif (short_len >= sizeof(d1->d_name))\n\t\t\tshort_len = sizeof(d1->d_name) - 1;\n\n\t\tif (copy_to_user(d2->d_name, longname, long_len)\t||\n\t\t    put_user(0, d2->d_name + long_len)\t\t\t||\n\t\t    put_user(long_len, &d2->d_reclen)\t\t\t||\n\t\t    put_user(ino, &d2->d_ino)\t\t\t\t||\n\t\t    put_user(offset, &d2->d_off)\t\t\t||\n\t\t    copy_to_user(d1->d_name, shortname, short_len)\t||\n\t\t    put_user(0, d1->d_name + short_len)\t\t\t||\n\t\t    put_user(short_len, &d1->d_reclen))\n\t\t\tgoto efault;\n\t}\n\treturn 0;\nefault:\n\tbuf->result = -EFAULT;\n\treturn -EFAULT;\n}"
+        },
+        "vulnerabilities": "fat: fix VFAT compat ioctls on 64-bit systems\n\nIf you compile and run the below test case in an msdos or vfat directory on\nan x86-64 system with -m32 you'll get garbage in the kernel_dirent struct\nfollowed by a SIGSEGV.\n\nThe patch fixes this.\n\nReported and initial fix by Bart Oldeman\n\n#include <sys/types.h>\n#include <sys/ioctl.h>\n#include <dirent.h>\n#include <stdio.h>\n#include <unistd.h>\n#include <fcntl.h>\nstruct kernel_dirent {\n         long            d_ino;\n         long\t\td_off;\n         unsigned short  d_reclen;\n         char            d_name[256]; /* We must not include limits.h! */\n};\n#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])\n#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])\n\nint main(void)\n{\n         int fd = open(\".\", O_RDONLY);\n         struct kernel_dirent de[2];\n\n         while (1) {\n                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);\n                 if (i == -1) break;\n                 if (de[0].d_reclen == 0) break;\n                 printf(\"SFN: reclen=%2d off=%d ino=%d, %-12s\",\n \t\t       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);\n \t\tif (de[1].d_reclen)\n \t\t  printf(\"\\tLFN: reclen=%2d off=%d ino=%d, %s\",\n \t\t    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);\n \t\tprintf(\"\\n\");\n         }\n         return 0;\n}\n\nSigned-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>\nSigned-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>\nCc: <stable@kernel.org>\nSigned-off-by: Andrew Morton <akpm@linux-foundation.org>\nSigned-off-by: Linus Torvalds <torvalds@linux-foundation.org>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format. Expected CWE-[number] or NA.\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2768,
+            "output_tokens": 22
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int fat_dir_ioctl(struct inode * inode, struct file * filp,\n\t\t  unsigned int cmd, unsigned long arg)\n{\n\tstruct fat_ioctl_filldir_callback buf;\n\tstruct dirent __user *d1;\n\tint ret, short_only, both;\n\n\tswitch (cmd) {\n\tcase VFAT_IOCTL_READDIR_SHORT:\n\t\tshort_only = 1;\n\t\tboth = 0;\n\t\tbreak;\n\tcase VFAT_IOCTL_READDIR_BOTH:\n\t\tshort_only = 0;\n\t\tboth = 1;\n\t\tbreak;\n\tdefault:\n\t\treturn fat_generic_ioctl(inode, filp, cmd, arg);\n\t}\n\n\td1 = (struct dirent __user *)arg;\n\tif (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))\n\t\treturn -EFAULT;\n\t/*\n\t * Yes, we don't need this put_user() absolutely. However old\n\t * code didn't return the right value. So, app use this value,\n\t * in order to check whether it is EOF.\n\t */\n\tif (put_user(0, &d1->d_reclen))\n\t\treturn -EFAULT;\n\n\tbuf.dirent = d1;\n\tbuf.result = 0;\n\tmutex_lock(&inode->i_mutex);\n\tret = -ENOENT;\n\tif (!IS_DEADDIR(inode)) {\n\t\tret = __fat_readdir(inode, filp, &buf, fat_ioctl_filldir,\n\t\t\t\t    short_only, both);\n\t}\n\tmutex_unlock(&inode->i_mutex);\n\tif (ret >= 0)\n\t\tret = buf.result;\n\treturn ret;\n}"
+        },
+        "vulnerabilities": "fat: fix VFAT compat ioctls on 64-bit systems\n\nIf you compile and run the below test case in an msdos or vfat directory on\nan x86-64 system with -m32 you'll get garbage in the kernel_dirent struct\nfollowed by a SIGSEGV.\n\nThe patch fixes this.\n\nReported and initial fix by Bart Oldeman\n\n#include <sys/types.h>\n#include <sys/ioctl.h>\n#include <dirent.h>\n#include <stdio.h>\n#include <unistd.h>\n#include <fcntl.h>\nstruct kernel_dirent {\n         long            d_ino;\n         long\t\td_off;\n         unsigned short  d_reclen;\n         char            d_name[256]; /* We must not include limits.h! */\n};\n#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])\n#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])\n\nint main(void)\n{\n         int fd = open(\".\", O_RDONLY);\n         struct kernel_dirent de[2];\n\n         while (1) {\n                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);\n                 if (i == -1) break;\n                 if (de[0].d_reclen == 0) break;\n                 printf(\"SFN: reclen=%2d off=%d ino=%d, %-12s\",\n \t\t       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);\n \t\tif (de[1].d_reclen)\n \t\t  printf(\"\\tLFN: reclen=%2d off=%d ino=%d, %s\",\n \t\t    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);\n \t\tprintf(\"\\n\");\n         }\n         return 0;\n}\n\nSigned-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>\nSigned-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>\nCc: <stable@kernel.org>\nSigned-off-by: Andrew Morton <akpm@linux-foundation.org>\nSigned-off-by: Linus Torvalds <torvalds@linux-foundation.org>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format, expected CWE-[number] or NA\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2768,
+            "output_tokens": 21
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static long fat_compat_dir_ioctl(struct file *file, unsigned cmd,\n\t\t\t\t unsigned long arg)\n{\n\tstruct compat_dirent __user *p = compat_ptr(arg);\n\tint ret;\n\tmm_segment_t oldfs = get_fs();\n\tstruct dirent d[2];\n\n\tswitch (cmd) {\n\tcase VFAT_IOCTL_READDIR_BOTH32:\n\t\tcmd = VFAT_IOCTL_READDIR_BOTH;\n\t\tbreak;\n\tcase VFAT_IOCTL_READDIR_SHORT32:\n\t\tcmd = VFAT_IOCTL_READDIR_SHORT;\n\t\tbreak;\n\tdefault:\n\t\treturn -ENOIOCTLCMD;\n\t}\n\n\tset_fs(KERNEL_DS);\n\tlock_kernel();\n\tret = fat_dir_ioctl(file->f_path.dentry->d_inode, file,\n\t\t\t    cmd, (unsigned long) &d);\n\tunlock_kernel();\n\tset_fs(oldfs);\n\tif (ret >= 0) {\n\t\tret |= fat_compat_put_dirent32(&d[0], p);\n\t\tret |= fat_compat_put_dirent32(&d[1], p + 1);\n\t}\n\treturn ret;\n}"
+        },
+        "vulnerabilities": "fat: fix VFAT compat ioctls on 64-bit systems\n\nIf you compile and run the below test case in an msdos or vfat directory on\nan x86-64 system with -m32 you'll get garbage in the kernel_dirent struct\nfollowed by a SIGSEGV.\n\nThe patch fixes this.\n\nReported and initial fix by Bart Oldeman\n\n#include <sys/types.h>\n#include <sys/ioctl.h>\n#include <dirent.h>\n#include <stdio.h>\n#include <unistd.h>\n#include <fcntl.h>\nstruct kernel_dirent {\n         long            d_ino;\n         long\t\td_off;\n         unsigned short  d_reclen;\n         char            d_name[256]; /* We must not include limits.h! */\n};\n#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])\n#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])\n\nint main(void)\n{\n         int fd = open(\".\", O_RDONLY);\n         struct kernel_dirent de[2];\n\n         while (1) {\n                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);\n                 if (i == -1) break;\n                 if (de[0].d_reclen == 0) break;\n                 printf(\"SFN: reclen=%2d off=%d ino=%d, %-12s\",\n \t\t       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);\n \t\tif (de[1].d_reclen)\n \t\t  printf(\"\\tLFN: reclen=%2d off=%d ino=%d, %s\",\n \t\t    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);\n \t\tprintf(\"\\n\");\n         }\n         return 0;\n}\n\nSigned-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>\nSigned-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>\nCc: <stable@kernel.org>\nSigned-off-by: Andrew Morton <akpm@linux-foundation.org>\nSigned-off-by: Linus Torvalds <torvalds@linux-foundation.org>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format, expected CWE-[number] or NA\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2768,
+            "output_tokens": 21
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static long fat_compat_put_dirent32(struct dirent *d,\n\t\t\t\t    struct compat_dirent __user *d32)\n{\n        if (!access_ok(VERIFY_WRITE, d32, sizeof(struct compat_dirent)))\n                return -EFAULT;\n\n        __put_user(d->d_ino, &d32->d_ino);\n        __put_user(d->d_off, &d32->d_off);\n        __put_user(d->d_reclen, &d32->d_reclen);\n        if (__copy_to_user(d32->d_name, d->d_name, d->d_reclen))\n\t\treturn -EFAULT;\n\n        return 0;\n}"
+        },
+        "vulnerabilities": "fat: fix VFAT compat ioctls on 64-bit systems\n\nIf you compile and run the below test case in an msdos or vfat directory on\nan x86-64 system with -m32 you'll get garbage in the kernel_dirent struct\nfollowed by a SIGSEGV.\n\nThe patch fixes this.\n\nReported and initial fix by Bart Oldeman\n\n#include <sys/types.h>\n#include <sys/ioctl.h>\n#include <dirent.h>\n#include <stdio.h>\n#include <unistd.h>\n#include <fcntl.h>\nstruct kernel_dirent {\n         long            d_ino;\n         long\t\td_off;\n         unsigned short  d_reclen;\n         char            d_name[256]; /* We must not include limits.h! */\n};\n#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])\n#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])\n\nint main(void)\n{\n         int fd = open(\".\", O_RDONLY);\n         struct kernel_dirent de[2];\n\n         while (1) {\n                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);\n                 if (i == -1) break;\n                 if (de[0].d_reclen == 0) break;\n                 printf(\"SFN: reclen=%2d off=%d ino=%d, %-12s\",\n \t\t       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);\n \t\tif (de[1].d_reclen)\n \t\t  printf(\"\\tLFN: reclen=%2d off=%d ino=%d, %s\",\n \t\t    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);\n \t\tprintf(\"\\n\");\n         }\n         return 0;\n}\n\nSigned-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>\nSigned-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>\nCc: <stable@kernel.org>\nSigned-off-by: Andrew Morton <akpm@linux-foundation.org>\nSigned-off-by: Linus Torvalds <torvalds@linux-foundation.org>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format. Expected CWE-[number] or NA.\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 2768,
+            "output_tokens": 22
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "static int vfat_ioctl32(unsigned fd, unsigned cmd, unsigned long arg)\n{\n\tstruct compat_dirent __user *p = compat_ptr(arg);\n\tint ret;\n\tmm_segment_t oldfs = get_fs();\n\tstruct dirent d[2];\n\n\tswitch(cmd)\n\t{\n        \tcase VFAT_IOCTL_READDIR_BOTH32:\n                \tcmd = VFAT_IOCTL_READDIR_BOTH;\n                \tbreak;\n        \tcase VFAT_IOCTL_READDIR_SHORT32:\n                \tcmd = VFAT_IOCTL_READDIR_SHORT;\n                \tbreak;\n\t}\n\n\tset_fs(KERNEL_DS);\n\tret = sys_ioctl(fd,cmd,(unsigned long)&d);\n\tset_fs(oldfs);\n\tif (ret >= 0) {\n\t\tret |= put_dirent32(&d[0], p);\n\t\tret |= put_dirent32(&d[1], p + 1);\n\t}\n\treturn ret;\n}"
+        },
+        "vulnerabilities": "[PATCH] BLOCK: Move the msdos device ioctl compat stuff to the msdos driver [try #6]\n\nMove the msdos device ioctl compat stuff from fs/compat_ioctl.c to the msdos\ndriver so that the msdos header file doesn't need to be included.\n\nSigned-Off-By: David Howells <dhowells@redhat.com>\nSigned-off-by: Jens Axboe <axboe@kernel.dk>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format. Expected CWE-[number] or NA.\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1814,
+            "output_tokens": 22
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "NVD-CWE-Other",
+        "CVE": "CVE-2007-2878",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "put_dirent32 (struct dirent *d, struct compat_dirent __user *d32)\n{\n        if (!access_ok(VERIFY_WRITE, d32, sizeof(struct compat_dirent)))\n                return -EFAULT;\n\n        __put_user(d->d_ino, &d32->d_ino);\n        __put_user(d->d_off, &d32->d_off);\n        __put_user(d->d_reclen, &d32->d_reclen);\n        if (__copy_to_user(d32->d_name, d->d_name, d->d_reclen))\n\t\treturn -EFAULT;\n\n        return 0;\n}"
+        },
+        "vulnerabilities": "[PATCH] BLOCK: Move the msdos device ioctl compat stuff to the msdos driver [try #6]\n\nMove the msdos device ioctl compat stuff from fs/compat_ioctl.c to the msdos\ndriver so that the msdos header file doesn't need to be included.\n\nSigned-Off-By: David Howells <dhowells@redhat.com>\nSigned-off-by: Jens Axboe <axboe@kernel.dk>",
+        "annotation": "{\"validation_error\": {\"CWE\": \"Invalid format. Expected CWE-[number] or NA.\"}}",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1814,
+            "output_tokens": 22
+        }
+    },
+    {
+        "vulnerable": 1,
+        "snippet_type": "function",
+        "CWE": "CWE-20",
+        "CVE": "CVE-2007-3731",
+        "language": "C",
+        "synthetic": 0,
+        "source": "DiverseVul",
+        "source_link": "https://github.com/wagner-group/diversevul?tab=readme-ov-file",
+        "files": {
+            "NA": "unsigned long convert_rip_to_linear(struct task_struct *child, struct pt_regs *regs)\n{\n\tunsigned long addr, seg;\n\n\taddr = regs->rip;\n\tseg = regs->cs & 0xffff;\n\n\t/*\n\t * We'll assume that the code segments in the GDT\n\t * are all zero-based. That is largely true: the\n\t * TLS segments are used for data, and the PNPBIOS\n\t * and APM bios ones we just ignore here.\n\t */\n\tif (seg & LDT_SEGMENT) {\n\t\tu32 *desc;\n\t\tunsigned long base;\n\n\t\tdown(&child->mm->context.sem);\n\t\tdesc = child->mm->context.ldt + (seg & ~7);\n\t\tbase = (desc[0] >> 16) | ((desc[1] & 0xff) << 16) | (desc[1] & 0xff000000);\n\n\t\t/* 16-bit code segment? */\n\t\tif (!((desc[1] >> 22) & 1))\n\t\t\taddr &= 0xffff;\n\t\taddr += base;\n\t\tup(&child->mm->context.sem);\n\t}\n\treturn addr;\n}"
+        },
+        "vulnerabilities": "Handle bogus %cs selector in single-step instruction decoding\n\nThe code for LDT segment selectors was not robust in the face of a bogus\nselector set in %cs via ptrace before the single-step was done.\n\nSigned-off-by: Roland McGrath <roland@redhat.com>\nSigned-off-by: Linus Torvalds <torvalds@linux-foundation.org>",
+        "annotation": "[Mandatory] ID: CVE-2007-3731\n\n[Mandatory] Title: CVE-2007-3731 / CWE-20: Handle bogus %cs selector in single-step instruction decoding\n\n[Optional] Disclosure / Patch Dates:\nInitial advisory: NA — Patch release: NA\n\n[Optional] Affected products/versions:\nNA\n\nThe Vulnerability\n[Optional] CWE/CVE Number and description:\nCWE-20: Improper Input Validation\n\n[Mandatory] Summary:\nThe code for LDT segment selectors was not robust in the face of a bogus selector set in %cs via ptrace before the single-step was done, leading to potential security vulnerabilities.\n\n[Mandatory] Root cause:\nUnchecked or improperly validated segment selector in the %cs register.\n\n[Mandatory] Attack Surface:\nKernel space, specifically during single-step instruction decoding.\n\n[Mandatory] Impact Summary: \nPotential security vulnerabilities due to improper validation of segment selectors.\n\n[Optional] Trigger / Attack vector:\nSetting a bogus selector in %cs via ptrace before single-stepping.\n\n[Mandatory] Key code/struct excerpt (minimal):\nNA\n\nExploit:\n[Mandatory] Trigger surface/attack vector:\nptrace system call\n\n[Mandatory] Exploit primitive(s) available:\nNA\n\n[Mandatory] Exploitability summary (1 sentence):\nExploitation requires precise control over the %cs register via ptrace, with potential for security vulnerabilities if not properly validated.\n\n[Mandatory] Exploit script (summary, 3–6 bullets):\n- Use ptrace to set a bogus selector in %cs.\n- Execute a single-step instruction.\n- Observe potential security issues due to improper validation.\n\nFix\n[Mandatory] Fix code:\nNA\n\n[Mandatory] Fix summary:\nNot available in input\n[Optional] Patch reference:\nNA\n[Optional] Patch Analysis:\nNA\n[Optional] Variant & Triage Guidance\n\n[Optional] Variant analysis suggestions (2–3 bullets):\n- Review other segment selector handling code.\n- Fuzz related ptrace operations.\n- Diff against other kernel versions for similar issues.\n\n[Optional] Likely variants/impact (one line):\nSimilar issues may exist in other segment selector handling code.",
+        "tests": "NA",
+        "solutions": "NA",
+        "annotation_metadata": {
+            "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+            "input_tokens": 1783,
+            "output_tokens": 452
+        }
+    }
+]
